@@ -1,0 +1,22 @@
+2023-09-28 22:18:02,882:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.6:5000
+2023-09-28 22:18:02,883:INFO:[33mPress CTRL+C to quit[0m
+2023-09-28 22:18:02,927:INFO: * Restarting with watchdog (windowsapi)
+2023-09-28 22:18:03,880:WARNING: * Debugger is active!
+2023-09-28 22:18:03,889:INFO: * Debugger PIN: 778-241-327
+2023-09-28 22:18:16,956:INFO:127.0.0.1 - - [28/Sep/2023 22:18:16] "GET / HTTP/1.1" 200 -
+2023-09-28 22:18:17,465:INFO:127.0.0.1 - - [28/Sep/2023 22:18:17] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2023-09-28 22:18:23,122:INFO:127.0.0.1 - - [28/Sep/2023 22:18:23] "GET / HTTP/1.1" 200 -
+2023-09-28 22:32:34,909:INFO: * Detected change in 'C:\\Users\\PUTRI AISYA IRNANDA\\docker\\routes.py', reloading
+2023-09-28 22:32:34,915:INFO: * Detected change in 'C:\\Users\\PUTRI AISYA IRNANDA\\docker\\routes.py', reloading
+2023-09-28 22:32:34,917:INFO: * Detected change in 'C:\\Users\\PUTRI AISYA IRNANDA\\docker\\routes.py', reloading
+2023-09-28 22:32:34,918:INFO: * Detected change in 'C:\\Users\\PUTRI AISYA IRNANDA\\docker\\routes.py', reloading
+2023-09-28 22:32:35,307:INFO: * Restarting with watchdog (windowsapi)
+2023-09-28 22:32:36,294:WARNING: * Debugger is active!
+2023-09-28 22:32:36,303:INFO: * Debugger PIN: 778-241-327
+2023-09-28 22:33:02,133:INFO:127.0.0.1 - - [28/Sep/2023 22:33:02] "GET / HTTP/1.1" 200 -
+2023-09-28 22:33:22,112:INFO:127.0.0.1 - - [28/Sep/2023 22:33:22] "GET / HTTP/1.1" 200 -
+2023-09-28 22:33:22,536:INFO:127.0.0.1 - - [28/Sep/2023 22:33:22] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2023-09-28 22:33:28,632:INFO:127.0.0.1 - - [28/Sep/2023 22:33:28] "GET / HTTP/1.1" 200 -
