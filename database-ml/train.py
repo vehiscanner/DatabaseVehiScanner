@@ -1,78 +1,155 @@
-import mysql.connector
-from datetime import datetime
+import cv2
+import numpy as np
+from keras.models import load_model
 
-# Inisialisasi koneksi ke database MySQL
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="root",  # Ganti dengan nama pengguna Anda
-    password=" ",  # Ganti dengan kata sandi Anda
-    database="VehiScanner"  # Ganti dengan nama database yang Anda gunakan
-)
-db_cursor = db_connection.cursor()
+# Load model machine learning yang sudah dilatih
+model = load_model('keras_model.h5')  # Gantilah 'model_kendaraan.h5' dengan nama file model Anda
 
-class BotResponses:
-    def _init_(self):
-        pass
+# Daftar kelas atau label yang digunakan
+kelas = {0: 'sepeda', 1: 'mobil', 2: 'motor'}
 
-    def process_image_upload(self, image_path):
-        # Simpan gambar yang diunggah oleh pengguna
-        uploaded_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")  # Tanggal dan waktu saat ini
-        insert_image_query = "INSERT INTO images (path_images, uploaded_date) VALUES (%s, %s)"
-        image_data = (image_path, uploaded_date)
+# Fungsi untuk mengklasifikasikan gambar dari webcam
+def klasifikasikan_kendaraan(frame):
+    # Praproses gambar (misalnya, resize, normalisasi)
+    frame = cv2.resize(frame, (224, 224))
+    frame = frame / 255.0  # Normalisasi pixel ke rentang [0, 1]
+    frame = np.expand_dims(frame, axis=0)  # Tambahkan dimensi batch
 
-        db_cursor.execute(insert_image_query, image_data)
-        db_connection.commit()
+    # Lakukan prediksi menggunakan model
+    hasil_prediksi = model.predict(frame)
+    kelas_prediksi = np.argmax(hasil_prediksi)
 
-        return "Gambar kendaraan berhasil diunggah."
+    # Dapatkan label prediksi
+    label = kelas[kelas_prediksi]
 
-    def get_transportation_by_type(self, jenis_transportasi):
-        # Query database untuk mendapatkan informasi kendaraan berdasarkan jenis
-        select_query = "SELECT jumlahTransportasi, waktu FROM jumlahTransportasi WHERE id_jenisTransportasi = (SELECT id_jenisTransportasi FROM jenisTransportasi WHERE jenisTransportasi = %s)"
-        db_cursor.execute(select_query, (jenis_transportasi,))
-        result = db_cursor.fetchall()
+    return label
 
-        if result:
-            bot_response = f"Informasi kendaraan jenis {jenis_transportasi}:"
-            for row in result:
-                bot_response += f"\nJumlah: {row[0]}, Waktu: {row[1]}"
-        else:
-            bot_response = f"Tidak ada informasi kendaraan untuk jenis {jenis_transportasi}."
+# Mulai webcam
+cap = cv2.VideoCapture(0)  # Angka 0 mengacu pada webcam bawaan, ganti sesuai dengan perangkat yang Anda gunakan
 
-        return bot_response
+while True:
+    ret, frame = cap.read()
 
-    def get_total_transportation(self):
-        # Query database untuk mendapatkan jumlah total kendaraan
-        select_query = "SELECT jenisTransportasi, SUM(jumlahTransportasi) FROM jumlahTransportasi GROUP BY jenisTransportasi"
-        db_cursor.execute(select_query)
-        result = db_cursor.fetchall()
+    # Deteksi kendaraan dan klasifikasikan
+    hasil_klasifikasi = klasifikasikan_kendaraan(frame)
 
-        if result:
-            bot_response = "Total jumlah kendaraan:"
-            for row in result:
-                bot_response += f"\nJenis: {row[0]}, Jumlah: {row[1]}"
-        else:
-            bot_response = "Tidak ada data jumlah kendaraan."
+    # Tampilkan hasil klasifikasi pada layar
+    cv2.putText(frame, hasil_klasifikasi, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.imshow('Deteksi Kendaraan', frame)
 
-        return bot_response
+    # Keluar dari loop jika tombol 'q' ditekan
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-# Contoh penggunaan:
+# Tutup webcam dan jendela
+cap.release()
+cv2.destroyAllWindows()
 
-# Inisialisasi objek BotResponses
-bot = BotResponses()
 
-# Contoh pengunggahan gambar kendaraan
-image_path = "path_ke_gambar_kendaraan.jpg"
-upload_response = bot.process_image_upload(image_path)
-print(upload_response)
 
-# Contoh pengambilan informasi kendaraan berdasarkan jenis
-jenis_transportasi = "Mobil"
-jenis_response = bot.get_transportation_by_type(jenis_transportasi)
-print(jenis_response)
 
-# Contoh pengambilan total jumlah kendaraan
-total_response = bot.get_total_transportation()
-print(total_response)
 
-# Menutup koneksi ke database MySQL
-db_connection.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# from keras.models import load_model
+# import cv2
+# import numpy as np
+
+# np.set_printoptions(suppress=True)
+
+# class WebcamClassifier:
+#     def __init__(self, model_path, labels_path, camera_index=0):
+#         self.model_path = model_path
+#         self.labels_path = labels_path
+#         self.camera_index = camera_index
+#         self.model = None
+#         self.class_names = None
+#         self.camera = None
+
+#     def load_model(self):
+#         self.model = load_model(self.model_path, compile=False)
+
+#     def load_labels(self):
+#         with open(self.labels_path, "r") as f:
+#             self.class_names = f.readlines()
+
+#     def open_camera(self):
+#         self.camera = cv2.VideoCapture(self.camera_index)
+
+#     def predict_image(self, image):
+#         # Resize the raw image into (224-height,224-width) pixels
+#         image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
+
+#         # Show the image in a window
+#         cv2.imshow("Webcam Image", image)
+
+#         # Make the image a numpy array and reshape it to the models input shape.
+#         image = np.asarray(image, dtype=np.float32).reshape(1, 224, 224, 3)
+
+#         # Normalize the image array
+#         image = (image / 127.5) - 1
+
+#         # Predict the model
+#         prediction = self.model.predict(image)
+#         index = np.argmax(prediction)
+#         class_name = self.class_names[index]
+#         confidence_score = prediction[0][index]
+
+#         # Print prediction and confidence score
+#         print("Class:", class_name[2:], end="")
+#         print("Confidence Score:", str(np.round(confidence_score * 100))[:-2], "%")
+
+#     def run(self):
+#         self.load_model()
+#         self.load_labels()
+#         self.open_camera()
+
+#         while True:
+#             # Grab the webcamera's image.
+#             ret, image = self.camera.read()
+
+#             self.predict_image(image)
+
+#             # Listen to the keyboard for presses.
+#             keyboard_input = cv2.waitKey(1)
+
+#             # 27 is the ASCII for the esc key on your keyboard.
+#             if keyboard_input == 27:
+#                 break
+
+#         self.camera.release()
+#         cv2.destroyAllWindows()
+
+
+# # Usage
+# model_path = "keras_Model.h5"
+# labels_path = "labels.txt"
+# camera_index = 0
+
+# webcam_classifier = WebcamClassifier(model_path, labels_path, camera_index)
+# webcam_classifier.run()

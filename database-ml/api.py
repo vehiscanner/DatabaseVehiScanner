@@ -1,67 +1,45 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-import response as responses
+import tensorflow as tf
+from PIL import Image
+import numpy as np
 
+# Load model
+model = tf.keras.models.load_model('keras_model.h5')
+
+# Initialize Flask app
 app = Flask(__name__)
-res = responses.Responses()
 
-# Konfigurasi database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:password@localhost/VehiScanner'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Define API endpoint for prediction
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Menerima gambar dari permintaan POST
+        file = request.files['image']
+        
+        
+        if file is None:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        img = Image.open(file)  # Menggunakan Image.open() untuk membuka gambar
 
-# Definisi model tabel
-class Images(db.Model):
-    id_images = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    path_images = db.Column(db.String(255))
-    uploaded_date = db.Column(db.TIMESTAMP(6))
+        # Mengubah gambar menjadi array numpy
+        img = img.resize((224, 224))  # Mengubah ukuran gambar menjadi (150, 150)
+        img_array = np.array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = img_array / 255.0  # Normalisasi
 
-class JenisTransportasi(db.Model):
-    id_jenisTransportasi = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    jenisTransportasi = db.Column(db.String(20))
-    waktu = db.Column(db.TIMESTAMP(6))
+        # Memprediksi kelas gambar
+        predictions = model.predict(img_array)
+        predictionsmax = np.argmax(predictions)
+        class_names = ['bicycle', 'car', 'motocycle']  # Ganti dengan kelas yang sesuai
+        predicted_class = class_names[predictionsmax]
 
-class JumlahTransportasi(db.Model):
-    id_jumlahTransportasi = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    jumlahTransportasi = db.Column(db.Integer)
-    waktu = db.Column(db.TIMESTAMP(6))
-    id_images = db.Column(db.Integer, db.ForeignKey('images.id_images'))
-    id_jenisTransportasi = db.Column(db.Integer, db.ForeignKey('jenisTransportasi.id_jenisTransportasi'))
+        # Mengembalikan hasil prediksi dalam format JSON
+        result = {'prediction': predicted_class}
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-# Membuat tabel dalam database jika belum ada
-db.create_all()
-
-# API endpoint untuk menambahkan data ke tabel images
-@app.route('/add_image', methods=['POST'])
-def add_image():
-    data = request.json
-    new_image = Images(path_images=data['path_images'], uploaded_date=data['uploaded_date'])
-    db.session.add(new_image)
-    db.session.commit()
-    return jsonify({'message': 'Gambar berhasil ditambahkan'}), 201
-
-# API endpoint untuk menambahkan data ke tabel jenisTransportasi
-@app.route('/add_jenis_transportasi', methods=['POST'])
-def add_jenis_transportasi():
-    data = request.json
-    new_jenis_transportasi = JenisTransportasi(jenisTransportasi=data['jenisTransportasi'], waktu=data['waktu'])
-    db.session.add(new_jenis_transportasi)
-    db.session.commit()
-    return jsonify({'message': 'Jenis transportasi berhasil ditambahkan'}), 201
-
-# API endpoint untuk menambahkan data ke tabel jumlahTransportasi
-@app.route('/add_jumlah_transportasi', methods=['POST'])
-def add_jumlah_transportasi():
-    data = request.json
-    new_jumlah_transportasi = JumlahTransportasi(
-        jumlahTransportasi=data['jumlahTransportasi'],
-        waktu=data['waktu'],
-        id_images=data['id_images'],
-        id_jenisTransportasi=data['id_jenisTransportasi']
-    )
-    db.session.add(new_jumlah_transportasi)
-    db.session.commit()
-    return jsonify({'message': 'Jumlah transportasi berhasil ditambahkan'}), 201
-
+# Run the Flask app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
