@@ -1,9 +1,8 @@
 import requests
 
 # URL server Flask
-server_url = "http://127.0.0.1:5000"  # Ganti dengan URL server yang sesuai
+server_url = "http://127.0.0.1:5000" 
 
-# Contoh data yang akan dikirim
 jenisTransportasi_data = {"jenisTransportasi_name": "jenisTransportasi"}
 image_data = {"image": ("1.jpeg", open("1.jpeg", "rb"))}
 jumlahTransportasi_data = {
@@ -18,10 +17,10 @@ jumlahTransportasi_data = {
 response = requests.post(f"{server_url}/insert_jenisTransportasi", json=jenisTransportasi_data)
 print("Response from /insert_jenisTransportasi:", response.json())
 
-# Mengirim data gambar
+# Mengirim data images
 response = requests.post(f"{server_url}/insert_images", files=image_data)
 print("Response from /insert_images:", response.json())
 
-# Mengirim data parking
+# Mengirim data jumlahTransportasi
 response = requests.post(f"{server_url}/insert_jumlahTransportasi_data", json=jumlahTransportasi_data)
 print("Response from /insert_jumlahTransportasi_data:", response.json())
